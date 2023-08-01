@@ -1,23 +1,31 @@
 import requests
 from bs4 import BeautifulSoup
-import json
 from flask import Flask
+import datetime
+
 
 app = Flask(__name__)
 
-def get_data_from_table(url):
+
+def get_data_from_url(url):
     response = requests.get(url)
+    response.encoding = "windows-1250"
     soup = BeautifulSoup(response.text, 'html.parser')
 
-    tables = soup.findAll('table')
-    
-    if not tables:
-        return None
-    
-    data = []
-    for table in tables[1:-3]:
+    tables = {
+        "muzi": "#tab1151",
+        "zeny": "#tab124",
+        "veterani": "#tab1104",
+        "dorostenci": "#tab184"
+    }
+
+    for table_key in tables.keys():
+        table = soup.select(tables[table_key])
+        if len(table) == 0:
+            continue
+
+        table = table[0]
         table_data = []
-        # print(table)
         headers = [header.text.strip() for header in table.find_all('th')]
 
         rows = table.find_all('tr')
@@ -25,33 +33,23 @@ def get_data_from_table(url):
             cells = row.find_all('td')
             row_data = [cell.text.strip() for cell in cells]
             table_data.append(dict(zip(headers, row_data)))
-        data.append(table_data)
 
-    return data
+        tables[table_key] = table_data
+
+    return tables
+
 
 @app.route("/")
 def hello_world():
     return {
-        "message": "Hello, World!"
+        "message": "Hello world!",
+        "time": datetime.datetime.utcnow(),
     }
+
 
 @app.route("/results/<path:url>")
 def results(url):
-    return get_data_from_table(url) or {}
-
-# if __name__ == "__main__":
-    
-#     # url = "https://vcbl.firesport.eu/vysledek-ostrov-u-macochy-12991.html"
-#     url = "https://vcbl.firesport.eu/vysledek-cernovice-12995.html"
-#     data = get_data_from_table(url)
-
-#     if data:
-#         json_data = json.dumps(data, indent=4) #, ensure_ascii=False)
-#         # print(json_data)
-
-#         # Writing to sample.json
-#         with open("output.json", "w") as outfile:
-#             outfile.write(json_data)
-
-#     else:
-#         print("Data not found.")
+    data = get_data_from_url(url)
+    if not data:
+        return {}
+    return data
