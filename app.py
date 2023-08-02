@@ -4,15 +4,43 @@ from flask import Flask
 from flask_cors import CORS
 import datetime
 import os
+from enum import Enum
 
 app = Flask(__name__)
-
 CORS(app)
 
-def get_data_from_url(url):
+
+class RaceDateEnum(Enum):
+    LAST = 1
+    NEXT = 2
+
+
+def get_soup(url):
     response = requests.get(url)
     response.encoding = 'windows-1250'
-    soup = BeautifulSoup(response.text, 'html.parser')
+    return BeautifulSoup(response.text, 'html.parser')
+
+
+def get_race_url(race_date: RaceDateEnum):
+    # Download league webpage
+    league_url = os.getenv('LEAGUE_URL') or 'https://vcbl.firesport.eu/'
+    soup = get_soup(league_url)
+
+    # Select race's link from table
+    if race_date == RaceDateEnum.LAST:
+        link = soup.select_one('#tablygsou1 td:nth-child(2) a')
+    elif race_date == RaceDateEnum.NEXT:
+        link = soup.select_one('#tabkallig td:nth-child(3) > a')
+    else:
+        return None
+
+    if link is not None:
+        return league_url + link.get("href").replace("soutez", "vysledek")
+    return None
+
+
+def get_data_from_url(url):
+    soup = get_soup(url)
 
     tables = {
         'muzi': '#tab1151',
@@ -68,9 +96,16 @@ def hello_world():
     }
 
 
+@app.route('/results')
 @app.route('/results/<path:url>')
-def results(url):
-    data = get_data_from_url(url)
+def results(url=None):
+    if url == "next" or url is None:
+        data = get_data_from_url(get_race_url(RaceDateEnum.NEXT))
+    elif url == "last":
+        data = get_data_from_url(get_race_url(RaceDateEnum.LAST))
+    else:
+        data = get_data_from_url(url)
+
     if not data:
         return {}
     return data
