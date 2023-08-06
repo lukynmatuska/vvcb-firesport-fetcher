@@ -111,6 +111,11 @@ def results(url=None):
     return data
 
 
+@app.route('/flask-health-check')
+def flask_health_check():
+    return "success"
+
+
 if __name__ == '__main__':
     app.run(
         host='0.0.0.0',
