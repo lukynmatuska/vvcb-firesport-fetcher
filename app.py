@@ -21,10 +21,13 @@ def get_soup(url):
     return BeautifulSoup(response.text, 'html.parser')
 
 
+def get_league_url():
+    return os.getenv('LEAGUE_URL') or 'https://vcbl.firesport.eu'
+
+
 def get_race_url(race_date: RaceDateEnum):
     # Download league webpage
-    league_url = os.getenv('LEAGUE_URL') or 'https://vcbl.firesport.eu/'
-    soup = get_soup(league_url)
+    soup = get_soup(get_league_url())
 
     # Select race's link from table
     if race_date == RaceDateEnum.LAST:
@@ -35,7 +38,7 @@ def get_race_url(race_date: RaceDateEnum):
         return None
 
     if link is not None:
-        return league_url + link.get("href").replace("soutez", "vysledek")
+        return get_league_url() + link.get("href").replace("soutez", "vysledek")
     return None
 
 
@@ -104,7 +107,7 @@ def results(url=None):
     elif url == "last":
         data = get_data_from_url(get_race_url(RaceDateEnum.LAST))
     else:
-        data = get_data_from_url(url)
+        data = get_data_from_url(f'{get_league_url()}/{url}')
 
     if not data:
         return {}
