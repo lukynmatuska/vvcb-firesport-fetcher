@@ -38,7 +38,7 @@ def get_race_url(race_date: RaceDateEnum):
         return None
 
     if link is not None:
-        return get_league_url() + link.get("href").replace("soutez", "vysledek")
+        return get_league_url() + '/' + link.get("href").replace("soutez", "vysledek")
     return None
 
 
