@@ -5,6 +5,7 @@ from flask_cors import CORS
 import datetime
 import os
 from enum import Enum
+from features.git import Git
 
 app = Flask(__name__)
 CORS(app)
@@ -93,9 +94,11 @@ def get_data_from_url(url):
 
 @app.route('/')
 def hello_world():
+    git = Git()
     return {
         'message': 'Hello world!',
         'time': datetime.datetime.utcnow(),
+        'git': git.short_hash(),
     }
 
 
