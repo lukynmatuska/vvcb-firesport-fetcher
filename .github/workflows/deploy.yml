@@ -1,0 +1,24 @@
+name: CI/CD
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    types: [opened, reopened, synchronize]
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  DeployToProduction:
+    runs-on: ubuntu-latest
+    environment: "Production"
+    if: github.ref == 'refs/heads/master'
+    steps:
+      - name: Execute deployment on SSH
+        uses: appleboy/ssh-action@v0.1.8
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: /tank/containers/deploy/vvcb-mw-dev.sh
