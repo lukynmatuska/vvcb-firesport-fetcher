@@ -1,4 +1,4 @@
-name: CI/CD
+name: Deploy docker
 
 on:
   push:
@@ -9,13 +9,25 @@ on:
   workflow_dispatch:
 
 jobs:
-  DeployToProduction:
+  ToProduction:
     runs-on: ubuntu-latest
-    environment: "Production"
+    environment: "production"
     if: github.ref == 'refs/heads/master'
     steps:
       - name: Execute deployment on SSH
-        uses: appleboy/ssh-action@v0.1.8
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: /tank/containers/deploy/vvcb-mw.sh
+  ToDev:
+    runs-on: ubuntu-latest
+    environment: "dev"
+    steps:
+      - name: Execute deployment on SSH
+        uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
