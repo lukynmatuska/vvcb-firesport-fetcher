@@ -25,6 +25,8 @@ jobs:
   ToDev:
     runs-on: ubuntu-latest
     environment: "dev"
+    env:
+      BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
     steps:
       - name: Execute deployment on SSH
         uses: appleboy/ssh-action@v0.1.10
@@ -33,4 +35,4 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          script: /tank/containers/deploy/vvcb-mw-dev.sh
+          script: /tank/containers/deploy/vvcb-mw-dev.sh $BRANCH_NAME
