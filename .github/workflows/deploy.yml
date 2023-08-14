@@ -15,7 +15,7 @@ jobs:
     if: github.ref == 'refs/heads/master'
     steps:
       - name: Execute deployment on SSH
-        uses: appleboy/ssh-action@v0.1.10
+        uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
@@ -25,14 +25,12 @@ jobs:
   ToDev:
     runs-on: ubuntu-latest
     environment: "dev"
-    env:
-      BRANCH_NAME: ${{ github.head_ref || github.ref_name }} 
     steps:
       - name: Execute deployment on SSH
-        uses: appleboy/ssh-action@v0.1.10
+        uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          script: /tank/containers/deploy/vvcb-mw-dev.sh $BRANCH_NAME
+          script: /tank/containers/deploy/vvcb-mw-dev.sh ${{ github.head_ref || github.ref_name }}
