@@ -43,7 +43,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          script: /tank/containers/deploy/pohles-api.sh
+          script: /tank/containers/deploy/vvcb-mw.sh
   deploy-dev:
     runs-on: ubuntu-latest
     environment: "dev"
@@ -55,4 +55,4 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          script: /tank/containers/deploy/pohles-api-dev.sh ${{ github.head_ref || github.ref_name }}
+          script: /tank/containers/deploy/vvcb-mw-dev.sh ${{ github.head_ref || github.ref_name }}
