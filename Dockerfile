@@ -4,6 +4,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 ENV TZ=Europe/Prague
 
+# update os and install packages
 RUN apk update && apk add git tzdata
 
 # upgrade pip
@@ -34,5 +35,10 @@ RUN pip install -r requirements.txt
 
 # define the port number the container should expose
 EXPOSE 5000
+ENV PORT=5000
+
+# check container status when running
+HEALTHCHECK --interval=10s --timeout=10s --retries=3 \
+  CMD curl -f http://localhost:${PORT}/flask-health-check || exit 1
 
 CMD ["python", "app.py"]
