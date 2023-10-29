@@ -1,14 +1,26 @@
+from fastapi import FastAPI
+from datetime import datetime
+from .features.git import Git
 import requests
 from bs4 import BeautifulSoup
-from flask import Flask
-from flask_cors import CORS
-import datetime
 import os
 from enum import Enum
-from features.git import Git
 
-app = Flask(__name__)
-CORS(app)
+app = FastAPI()
+
+
+@app.get("/")
+async def root():
+    git = Git()
+    return {
+        "git": git.short_hash(),
+        "message": "Hello World",
+        "time": datetime.utcnow()
+    }
+
+@app.get("/health-check")
+def health_check():
+    return "success"
 
 
 class RaceDateEnum(Enum):
@@ -91,21 +103,9 @@ def get_data_from_url(url):
 
     return tables
 
-
-@app.route('/')
-def hello_world():
-    git = Git()
-    return {
-        'message': 'Hello world!',
-        'time': datetime.datetime.utcnow(),
-        'git': git.short_hash(),
-    }
-
-
-@app.route('/results')
-@app.route('/results/<path:url>')
-def results(url=None):
-    if url == "next" or url is None:
+@app.get('/results/{url}')
+def results(url: str):
+    if url == "next":
         data = get_data_from_url(get_race_url(RaceDateEnum.NEXT))
     elif url == "last":
         data = get_data_from_url(get_race_url(RaceDateEnum.LAST))
@@ -116,14 +116,6 @@ def results(url=None):
         return {}
     return data
 
-
-@app.route('/flask-health-check')
-def flask_health_check():
-    return "success"
-
-
-if __name__ == '__main__':
-    app.run(
-        host='0.0.0.0',
-        port=os.getenv('PORT') or 8000
-    )
+@app.get('/results')
+def results_without_url():
+    return results("last")

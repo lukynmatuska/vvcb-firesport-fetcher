@@ -1,6 +1,6 @@
 requests
 bs4
-flask
-flask-cors
-gunicorn
+fastapi
+pydantic
+uvicorn
 gitpython

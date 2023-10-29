@@ -1,16 +1,15 @@
+version: "3"
 services:
   api:
-    build: .
+    image: ghcr.io/lukynmatuska/vvcb-firesporteu-middleware:latest
+    # build:
+    #   context: .
+    #   dockerfile: ./Dockerfile
+    #   args:
+    #     USER_ID: 1000
+    #     GROUP_ID: 1000
     restart: always
-    ports: 
-      - '8000:8000'
-    # environment:
-    #   PORT: 8000
-    healthcheck:
-      test: ["CMD-SHELL", "curl --silent --fail http://localhost:${PORT}/flask-health-check || exit 1"]
-      interval: 10s
-      timeout: 10s
-      retries: 3
-    command: gunicorn -w 3 -t 60 -b 0.0.0.0:8000 app:app
-
-# for nginx see: https://github.com/docker/awesome-compose/tree/master/nginx-wsgi-flask
+    ports:
+      - "8000:80"
+    stdin_open: true  # -i
+    tty: true         # -t
