@@ -1,44 +1,41 @@
-FROM python:3.10-alpine
+FROM tiangolo/uvicorn-gunicorn-fastapi:python3.11
 
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
-ENV TZ=Europe/Prague
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+RUN echo "Used user id: ${USER_ID}\nUsed group id: ${GROUP_ID}"
 
-# update os and install packages
-RUN apk update && apk add git tzdata
+# Update system
+RUN apt update && apt upgrade -y && apt autoremove -y
 
-# upgrade pip
+# Upgrade python package manager
 RUN pip install --upgrade pip
 
-# get curl for healthchecks
-RUN apk add curl
+# Change working directory
+WORKDIR /var/www
 
-# permissions and nonroot user for tightened security
-RUN adduser -D nonroot
-RUN mkdir /home/app/ && chown -R nonroot:nonroot /home/app
-RUN mkdir -p /var/log/flask-app && touch /var/log/flask-app/flask-app.err.log && touch /var/log/flask-app/flask-app.out.log
-RUN chown -R nonroot:nonroot /var/log/flask-app
-WORKDIR /home/app
-USER nonroot
+# Copy folders and files – It's important to copy files before changing their ownership
+COPY ./.git ./.git
+COPY ./app ./app
+COPY ./requirements.txt ./requirements.txt
 
-# copy all the files to the container
-COPY --chown=nonroot:nonroot . .
+# Change ID of www-data user and group to ID from ENV
+RUN if [ ${USER_ID:-0} -ne 0 ] && [ ${GROUP_ID:-0} -ne 0 ]; then \
+    if getent passwd www-data ; then echo "Delete user www-data" && userdel -f www-data;fi &&\
+    if getent group www-data ; then echo "Delete group www-data" && groupdel www-data;fi &&\
+    echo "Add new group www-data" && groupadd -g ${GROUP_ID} www-data &&\
+    echo "Add new user www-data" && useradd -l -u ${USER_ID} -g www-data www-data &&\
+    echo "Change ownership of workdir" && mkdir -p /var/www && chown --changes --no-dereference --recursive www-data:www-data /var/www &&\
+    echo "Change ownership of homedir" && mkdir -p /home/www-data && chown --changes --no-dereference --recursive www-data:www-data /home/www-data \
+;fi
 
-# venv
-ENV VIRTUAL_ENV=/home/app/venv
+# Change user
+USER www-data:www-data
 
-# python setup
-RUN python -m venv $VIRTUAL_ENV
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-ENV FLASK_APP=app.py
-RUN pip install -r requirements.txt
+# Install requirements
+RUN pip install --no-cache-dir --upgrade -r ./requirements.txt
 
-# define the port number the container should expose
-EXPOSE 5000
-ENV PORT=5000
+# Expose port
+EXPOSE 80
 
-# check container status when running
-HEALTHCHECK --interval=10s --timeout=10s --retries=3 \
-  CMD curl -f http://localhost:${PORT}/flask-health-check || exit 1
-
-CMD ["python", "app.py"]
+# Command on start of container
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "80"]
