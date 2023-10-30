@@ -11,5 +11,7 @@ services:
     restart: always
     ports:
       - "8000:80"
+    environment:
+      CORS_ORIGINS: '["https://vvcb.cz", "http://localhost:4200"]'
     stdin_open: true  # -i
     tty: true         # -t

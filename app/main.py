@@ -1,12 +1,24 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 from .features.git import Git
 import requests
 from bs4 import BeautifulSoup
 import os
+import json
 from enum import Enum
 
 app = FastAPI()
+
+origins = json.loads(os.getenv('CORS_ORIGINS'))
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/")
