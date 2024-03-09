@@ -43,7 +43,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_KEY }}
           port: ${{ secrets.SSH_PORT }}
-          script: /tank/containers/deploy/vvcb-mw.sh
+          script: /mnt/md146g/lukas/devel-servers/obelix/vvcb-firesporteu-middleware/deploy.sh
   deploy-dev:
     runs-on: ubuntu-latest
     environment: "dev"
